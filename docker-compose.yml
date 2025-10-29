@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  notification-service:
+    image: sarindockerhub/notification-service:latest
+    ports:
+      - "8282:8080"
+    env_file:
+      - .env                          # optional - put sensitive values here instead of the file/compose
+    environment:
+      # Mail (set these in .env or here)
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+
+      # Telegram bot token (set TELEGRAM_BOT_TOKEN in .env or CI)
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+
+      # Data source: default is in-memory H2. To persist H2 use a file-based URL (see notes).
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:h2:mem:notificationdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+
+    volumes:
+      # Optional: mount a Spring Boot external config to override application.yml
+      - ./application.override.yml:/config/application.yml:ro
+      # Optional persistent volume (use if you switch to jdbc:h2:file:/data/notificationdb)
+      - /home/hemsarin096/data:/data
+
+    restart: unless-stopped
+
+volumes:
+  notification-data:
