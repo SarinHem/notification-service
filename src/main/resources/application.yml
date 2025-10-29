@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:notificationdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  mail:
+    host: smtp.example.com
+    port: 587
+    username: your-smtp-username
+    password: your-smtp-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8080
+
+# For development convenience: H2 console
+spring.h2.console.enabled: true
+spring.h2.console.path: /h2-console
