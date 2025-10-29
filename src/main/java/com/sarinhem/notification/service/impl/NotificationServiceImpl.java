@@ -6,6 +6,7 @@ import com.sarinhem.notification.model.NotificationStatus;
 import com.sarinhem.notification.repository.NotificationRepository;
 import com.sarinhem.notification.service.NotificationService;
 import com.sarinhem.notification.model.NotificationType;
+import com.sarinhem.notification.telegram.TelegramService;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -19,10 +20,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository repository;
     private final JavaMailSender mailSender;
+    private final TelegramService telegramService;
 
-    public NotificationServiceImpl(NotificationRepository repository, JavaMailSender mailSender) {
+    public NotificationServiceImpl(NotificationRepository repository, JavaMailSender mailSender, TelegramService telegramService) {
         this.repository = repository;
         this.mailSender = mailSender;
+        this.telegramService = telegramService;
     }
 
     @Override
@@ -38,7 +41,6 @@ public class NotificationServiceImpl implements NotificationService {
 
         notification = repository.save(notification);
 
-        // Only EMAIL implemented here; add SMS/PUSH integrations as needed
         if (request.getType() == NotificationType.EMAIL) {
             try {
                 SimpleMailMessage message = new SimpleMailMessage();
@@ -53,8 +55,17 @@ public class NotificationServiceImpl implements NotificationService {
             } catch (MailException ex) {
                 notification.setStatus(NotificationStatus.FAILED);
                 repository.save(notification);
-                // Optionally rethrow or log
             }
+        } else if (request.getType() == NotificationType.TELEGRAM) {
+            // For Telegram, recipient is expected to be the chat id (as string)
+            boolean ok = telegramService.sendMessage(request.getRecipient(), request.getBody());
+            if (ok) {
+                notification.setStatus(NotificationStatus.SENT);
+                notification.setSentAt(OffsetDateTime.now());
+            } else {
+                notification.setStatus(NotificationStatus.FAILED);
+            }
+            repository.save(notification);
         } else {
             // For SMS/PUSH: enqueue or call external provider, update status accordingly.
             // For now mark as SENT placeholder

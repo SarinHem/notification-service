@@ -21,6 +21,12 @@ spring:
           starttls:
             enable: true
 
+# Telegram bot configuration (set real token via env in Docker/GitLab CI)
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN:} # token can be provided via environment variable TELEGRAM_BOT_TOKEN
+    api-url: https://api.telegram.org
+
 server:
   port: 8080
 
